@@ -1,2 +1,2 @@
-# backlog_dashboards
+# Backlog_dashboards
 Backlogの複数スペースのアクティビティをまとめて表示 vue.js練習
