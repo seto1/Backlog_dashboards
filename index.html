@@ -24,7 +24,7 @@
 						<span class="activity-created">{{ activity.created }}</span>
 					</div>
 					<div class="activity-title">
-						<a v-bind:href="panel.url + '/view/' + activity.project_key + '-' + activity.key_id + '#comment-' + activity.comment_id" target="_blank">{{ activity.project_key }}-{{ activity.key_id }}</a> {{ activity.summary }}
+						<a v-bind:href="activityUrl(panel, activity)" target="_blank">{{ activity.project_key }}-{{ activity.key_id }}</a> {{ activity.summary }}
 					</div>
 					<div class="activity-content" v-on:click="expandContent(activity)" v-bind:class="{'activity-content-expanded':activity.contentExpanded}">
 						<div v-if="activity.comment" v-html="activity.comment"></div>

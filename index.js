@@ -175,6 +175,14 @@ let vm = new Vue({
 				this.loadActivities(panelNo);
 			}
 		},
+		activityUrl: function(panel, activity) {
+			let url = panel.url + '/view/' + activity.project_key + '-' + activity.key_id;
+			if (activity.comment_id) {
+				url += '#comment-' + activity.comment_id;
+			}
+
+			return url;
+		},
 		escape(str) {
 			if (! str) return;
 
