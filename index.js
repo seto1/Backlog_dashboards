@@ -87,15 +87,6 @@ let vm = new Vue({
 				url += '&maxId=' + maxId;
 			}
 			axios.get(url).then(response => {
-				if (! this.panels[configNo]) {
-					this.panels[configNo] = {
-						no: configNo,
-						name: config[configNo].name,
-						url: config[configNo].url,
-						activities: [],
-					}
-				}
-				this.convertActivityApiData(config[configNo], response);
 				let activities = this.convertActivityApiData(config[configNo], response);
 				this.panels[configNo]['activities'] = this.panels[configNo]['activities'].concat(activities);
 				this.panels = Object.assign({}, this.panels);
@@ -127,22 +118,26 @@ let vm = new Vue({
 
 				spaceConfig.maxId = response.data[i].id;
 
-				switch (activity.type) {
-					case 1:
-						activity.type_text = '課題追加';
-						break;
-					case 2:
-						activity.type_text = '課題更新';
-						break;
-					case 3:
-						activity.type_text = 'コメント';
-						break;
-				}
+				let types = {
+					1: '課題追加',
+					2: '課題更新',
+					3: 'コメント',
+				};
+				activity.type_text = types[activity.type];
 
 				activity.description = response.data[i].content.description;
 				if (response.data[i].content.description) {
 					activity.description = this.escape(response.data[i].content.description);
 					activity.description = activity.description.replace(/\n/g, '<br>');
+				}
+
+				activity.changes = [];
+				if (response.data[i].content.changes) {
+					for (var j = 0; j < response.data[i].content.changes.length; j++) {
+						let change = {};
+						change.status = this.getStatusText(response.data[i].content.changes[j]);
+						activity.changes.push(change);
+					}
 				}
 
 				activities.push(activity);
@@ -183,13 +178,35 @@ let vm = new Vue({
 				this.loadActivities(panelNo);
 			}
 		},
-		activityUrl: function(panel, activity) {
+		activityUrl(panel, activity) {
 			let url = panel.url + '/view/' + activity.project_key + '-' + activity.key_id;
 			if (activity.comment_id) {
 				url += '#comment-' + activity.comment_id;
 			}
 
 			return url;
+		},
+		getStatusText(change) {
+			let statusTypes = {
+				status: '状態',
+				assigner: '担当者',
+				limitDate: '期限日',
+				description: '説明文変更',
+			};
+			let statuses = {
+				1: '未対応',
+				2: '処理中',
+				3: '処理済み',
+				4: '完了',
+			};
+
+			if (! statusTypes[change.field]) return '';
+
+			if (change.field === 'status') change.new_value = statuses[change.new_value];
+
+			statusText = '[' + statusTypes[change.field] + ': ' + change.new_value + ']';
+
+			return statusText;
 		},
 		escape(str) {
 			if (! str) return;

@@ -29,7 +29,12 @@
 					</div>
 					<div class="activity-content" v-on:click="expandContent(activity)" v-bind:class="{'activity-content-expanded':activity.contentExpanded}">
 						<div v-if="activity.comment" v-html="activity.comment"></div>
-						<div v-else v-html="activity.description"></div>
+						<div v-if="! activity.comment && ! activity.changes.length" v-html="activity.description"></div>
+						<div v-if="activity.changes.length" class="activity-status">
+							<span v-for="change in activity.changes">
+								{{ change.status }}
+							</span>
+						</div>
 					</div>
 				</div>
 			</div>

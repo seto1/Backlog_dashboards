@@ -55,6 +55,9 @@ a {
 	vertical-align: top;
 	color: #555;
 }
+.activity-status {
+	color: #555;
+}
 #config textarea {
 	width: 500px;
 	height: 100px;
