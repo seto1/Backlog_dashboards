@@ -16,6 +16,7 @@
 		<div id="panels" v-if="config.length">
 			<div class="panel" v-for="panel in panels" v-on:scroll="infiniteScroll($event, panel.no)">
 				<a v-bind:href="panel.url" target="_blank">{{ panel.name }}</a>
+				<div v-if="! panel.activities.length">loading</div>
 				<div class="activity" v-for="activity in panel.activities">
 					<div class="activity-type" v-bind:class="'activity-type' + activity.type">{{ activity.type_text }}</div>
 					<div class="activity-user">

@@ -17,6 +17,14 @@ let vm = new Vue({
 			config = JSON.parse(configCookie);
 
 			for (let i = 0; i < config.length; i++) {
+				if (! this.panels[i]) {
+					this.panels[i] = {
+						no: i,
+						name: config[i].name,
+						url: config[i].url,
+						activities: [],
+					}
+				}
 				this.loadActivities(i);
 			}
 
