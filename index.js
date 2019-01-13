@@ -102,8 +102,7 @@ let vm = new Vue({
 					activity.comment_id = response.data[i].content.comment.id;
 
 					if (response.data[i].content.comment.content) {
-						activity.comment = this.escape(response.data[i].content.comment.content);
-						activity.comment = activity.comment.replace(/\n/g, '<br>');
+						activity.comment = this.formatText(response.data[i].content.comment.content);
 					}
 				}
 
@@ -127,8 +126,7 @@ let vm = new Vue({
 
 				activity.description = response.data[i].content.description;
 				if (response.data[i].content.description) {
-					activity.description = this.escape(response.data[i].content.description);
-					activity.description = activity.description.replace(/\n/g, '<br>');
+					activity.description = this.formatText(response.data[i].content.description);
 				}
 
 				activity.changes = [];
@@ -207,6 +205,12 @@ let vm = new Vue({
 			statusText = '[' + statusTypes[change.field] + ': ' + change.new_value + ']';
 
 			return statusText;
+		},
+		formatText(str) {
+			str = this.escape(str);
+			str = str.replace(/((http:|https:)\/\/[\x21-\x26\x28-\x7e]+)/gi,
+				"<a href=\"$1\" target=\"_blank\">$1</a>");
+			return str.replace(/\n/g, '<br>');
 		},
 		escape(str) {
 			if (! str) return;
