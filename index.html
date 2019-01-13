@@ -18,13 +18,12 @@
 				<a v-bind:href="panel.url" target="_blank">{{ panel.name }}</a>
 				<div v-if="! panel.activities.length">loading</div>
 				<div class="activity" v-for="activity in panel.activities">
-					<div class="activity-type" v-bind:class="'activity-type' + activity.type">{{ activity.type_text }}</div>
-					<div class="activity-user">
-						<img v-bind:src="activity.user_icon" width="20">
-						<span class="activity-user-name">{{ activity.user_name }}</span>
-						<span class="activity-created">{{ activity.created }}</span>
-					</div>
+					<div class="activity-created">{{ activity.created }}</div>
 					<div class="activity-title">
+						<span class="activity-user-icon"><img v-bind:src="activity.user_icon" width="20"></span>
+						<span class="activity-title-text">{{ activity.user_name }}さんが{{ activity.type_text }}</span>
+					</div>
+					<div class="activity-summary">
 						<a v-bind:href="activityUrl(panel, activity)" target="_blank">{{ activity.project_key }}-{{ activity.key_id }}</a> {{ activity.summary }}
 					</div>
 					<div class="activity-content" v-on:click="expandContent(activity)" v-bind:class="{'activity-content-expanded':activity.contentExpanded}">
