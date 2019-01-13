@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="index.css">
+	<title>Backlog dashboards</title>
+</head>
+
+<body>
+	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+	<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+	<div id="app">
+		<div id="panels" v-if="config.length">
+			<div class="panel" v-for="panel in panels">
+				<a v-bind:href="panel.url" target="_blank">{{ panel.name }}</a>
+				<div class="activity" v-for="activity in panel.activities">
+					<div class="activity-type" v-bind:class="'activity-type' + activity.type">{{ activity.type_text }}</div>
+					<div class="activity-user">
+						<img v-bind:src="activity.user_icon" width="20">
+						<span class="activity-user-name">{{ activity.user_name }}</span>
+						<span class="activity-created">{{ activity.created }}</span>
+					</div>
+					<div class="activity-title">
+						<a v-bind:href="panel.url + '/view/' + activity.project_key + '-' + activity.key_id + '#comment-' + activity.comment_id" target="_blank">{{ activity.project_key }}-{{ activity.key_id }}</a> {{ activity.summary }}
+					</div>
+					<div class="activity-content" v-on:click="expandContent(activity)" v-bind:class="{'activity-content-expanded':activity.contentExpanded}">
+						<div v-if="activity.comment" v-html="activity.comment"></div>
+						<div v-else v-html="activity.description"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="guide" v-if="! config.length">
+			最初にアクティビティを確認したいスペースの設定を行ってください<br>
+			利用にはBacklogの個人設定でAPIキーの登録が必要です
+		</div>
+
+		<div id="config">
+			<div id="config-title" v-on:click="toggleConfig">□設定</div>
+			<div id="config-content" v-show="showConfigContent">
+				<textarea v-model="configText" placeholder="[スペース名],[スペースurl],[apiKey] の形式で一行につき1スペースの設定"></textarea>
+				<div id="configError">{{ configError }}</div>
+				<button type="button" @click="saveConfig()">save & reload</button>
+			</div>
+		</div>
+	</div>
+
+	<script src="index.js"></script>
+</body>
+
+</html>

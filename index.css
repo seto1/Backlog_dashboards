@@ -1,0 +1,73 @@
+body {
+	font-size: 12px;
+	background: #efefef;
+	word-wrap: break-word;
+}
+a {
+	color: #000;
+}
+#panels {
+	display: flex;
+	margin-bottom: 20px;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+.panel {
+	margin: 10px;
+	max-width: 400px;
+	min-width: 200px;
+	max-height: 500px;
+	overflow: auto;
+}
+.activity {
+	background: #fff;
+	margin-bottom: 5px;
+	padding: 5px;
+	border-bottom: 1px solid #ccc;
+	position: relative;
+}
+.activity-type {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	color: #555;
+	font-size: 0.7rem;
+}
+.activity-title {
+	margin-bottom: 5px;
+}
+.activity-content {
+	max-height: 100px;
+	overflow: hidden;
+	margin-bottom: 5px;
+}
+.activity-content-expanded {
+	max-height: none;
+}
+.activity-user {
+}
+.activity-user img {
+	border-radius: 50%;
+}
+.activity-user-name {
+	vertical-align: top;
+}
+.activity-created {
+	vertical-align: top;
+	color: #555;
+}
+#config textarea {
+	width: 500px;
+	height: 100px;
+}
+#configError {
+	color: #f00;
+}
+#config-title {
+	display: inline-block;
+	cursor: pointer;
+	user-select: none;
+}
+#guide {
+	margin-bottom: 20px;
+}
