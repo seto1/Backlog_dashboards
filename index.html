@@ -19,7 +19,7 @@
 				<a v-bind:href="panel.url" target="_blank">{{ panel.name }}</a>
 				<div v-if="! panel.activities.length">loading</div>
 				<div class="activity" v-for="activity in panel.activities">
-					<div class="activity-created">{{ activity.created }}</div>
+					<div class="activity-created" v-bind:title="activity.created">{{ activity.created_ago }}</div>
 					<div class="activity-title">
 						<span class="activity-user-icon"><img v-bind:src="activity.user_icon" width="20"></span>
 						<span class="activity-title-text">{{ activity.user_name }}さんが{{ activity.type_text }}</span>

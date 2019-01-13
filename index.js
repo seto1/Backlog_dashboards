@@ -137,6 +137,7 @@ let vm = new Vue({
 				activity.user_name = response.data[i].createdUser.name;
 				activity.project_key = response.data[i].project.projectKey;
 				activity.created = this.formatDate(response.data[i].created);
+				activity.created_ago = this.formatDateAgo(response.data[i].created);
 				activity.type = response.data[i].type;
 				activity.contentExpanded = false;
 
@@ -175,6 +176,12 @@ let vm = new Vue({
 			this.showConfigContent = ! this.showConfigContent;
 		},
 		formatDate(unixTime) {
+			let date = new Date(unixTime)
+
+			return date.getFullYear() + '/' + date.getMonth() + 1 + '/' + date.getDate()
+				+ ' ' + date.getHours() + ':' + date.getUTCMinutes() + ':' + date.getSeconds();
+		},
+		formatDateAgo(unixTime) {
 			let date = new Date(unixTime)
 			let diff = new Date().getTime() - date.getTime()
 			let d = new Date(diff);
