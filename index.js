@@ -12,9 +12,19 @@ let vm = new Vue({
 	el: '#app',
 	data: data,
 	created: function() {
+		this.saltKey = this.getUrlParam('key');
+		if (! this.saltKey) this.reloadPageWithKey();
+
 		let configCookie = Cookies.get('backlog_dashboards_config');
 		if (configCookie) {
-			config = JSON.parse(configCookie);
+			let bytes  = CryptoJS.AES.decrypt(configCookie, this.saltKey);
+			let json = bytes.toString(CryptoJS.enc.Utf8);
+			if (! json) {
+				alert('keyの値が間違っています')
+				return;
+			}
+			let configText = JSON.parse(json);
+			config = this.configTextToArray(configText);
 
 			for (let i = 0; i < config.length; i++) {
 				if (! this.panels[i]) {
@@ -28,18 +38,36 @@ let vm = new Vue({
 				this.loadActivities(i);
 			}
 
-			this.configToText();
+			this.configArrayToText();
 		} else {
 			this.showConfigContent = true;
 		}
 	},
 	methods: {
+		reloadPageWithKey() {
+			let c = 'abcdefghijklmnopqrstuvwxyz0123456789';
+			let cl = c.length;
+			let key = '';
+			for (let i = 0; i < 10; i++){
+				key += c[Math.floor(Math.random() * cl)];
+			}
+			window.location.href = window.location.pathname + '?key=' + key;
+		},
 		saveConfig() {
 			this.configError = '';
+			let _config = this.configTextToArray(this.configText);
+			if (! this.configError) {
+				config = _config;
+				let cryptedConfig = CryptoJS.AES.encrypt(JSON.stringify(this.configText), this.saltKey).toString();
+				Cookies.set('backlog_dashboards_config', cryptedConfig, { expires: 365 });
+				location.reload();
+			}
+		},
+		configTextToArray(configText) {
 			let _config = [];
-			let lines = this.configText.split(/\n/);
+			let lines = configText.split(/\n/);
 			for (let i = 0; i < lines.length; i++) {
-				if (lines[i] === '') continue;
+				if (lines[i] === '' || lines[i][0] === '#') continue;
 				let words = lines[i].split(/,/);
 
 				if (! words[0] || !words[1] || !words[2]) {
@@ -58,13 +86,10 @@ let vm = new Vue({
 
 				_config.push({ 'name': words[0], 'url': words[1], 'apiKey': words[2] });
 			}
-			if (! this.configError) {
-				config = _config;
-				Cookies.set('backlog_dashboards_config', config, { expires: 365 });
-				location.reload();
-			}
+
+			return _config;
 		},
-		configToText() {
+		configArrayToText() {
 			let configText = '';
 			for (let i = 0; i < config.length; i++) {
 				configText += config[i].name + ', ' + config[i].url + ', ' + config[i].apiKey + '\n';
@@ -131,7 +156,7 @@ let vm = new Vue({
 
 				activity.changes = [];
 				if (response.data[i].content.changes) {
-					for (var j = 0; j < response.data[i].content.changes.length; j++) {
+					for (let j = 0; j < response.data[i].content.changes.length; j++) {
 						let change = {};
 						change.status = this.getStatusText(response.data[i].content.changes[j]);
 						activity.changes.push(change);
@@ -150,9 +175,9 @@ let vm = new Vue({
 			this.showConfigContent = ! this.showConfigContent;
 		},
 		formatDate(unixTime) {
-			var date = new Date(unixTime)
-			var diff = new Date().getTime() - date.getTime()
-			var d = new Date(diff);
+			let date = new Date(unixTime)
+			let diff = new Date().getTime() - date.getTime()
+			let d = new Date(diff);
 
 			if (d.getUTCFullYear() - 1970) {
 				return d.getUTCFullYear() - 1970 + '年前'
@@ -209,19 +234,28 @@ let vm = new Vue({
 		formatText(str) {
 			str = this.escape(str);
 			str = str.replace(/((http:|https:)\/\/[\x21-\x26\x28-\x7e]+)/gi,
-				"<a href=\"$1\" target=\"_blank\">$1</a>");
+				'<a href="$1" target="_blank">$1</a>');
 			return str.replace(/\n/g, '<br>');
+		},
+		getUrlParam(name, url) {
+			if (!url) url = window.location.href;
+			name = name.replace(/[\[\]]/g, '\\$&');
+			let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+				results = regex.exec(url);
+			if (!results) return null;
+			if (!results[2]) return '';
+			return decodeURIComponent(results[2].replace(/\+/g, ' '));
 		},
 		escape(str) {
 			if (! str) return;
 
 			return str.replace(/[<>&"'`]/g, function(match) {
-				var escape = {
+				let escape = {
 					'<': '&lt;',
 					'>': '&gt;',
 					'&': '&amp;',
 					'"': '&quot;',
-					"'": '&#39;',
+					'\'': '&#39;',
 					'`': '&#x60;'
 				};
 
