@@ -15,7 +15,11 @@ let vm = new Vue({
 		let configCookie = Cookies.get('backlog_dashboards_config');
 		if (configCookie) {
 			config = JSON.parse(configCookie);
-			this.loadActivities();
+
+			for (let i = 0; i < config.length; i++) {
+				this.loadActivities(i);
+			}
+
 			this.configToText();
 		} else {
 			this.showConfigContent = true;
@@ -59,7 +63,7 @@ let vm = new Vue({
 			}
 			this.configText = configText;
 		},
-		loadActivities() {
+		loadActivities(configNo) {
 			// 取得する更新の種別
 			let activityTypeIds = [
 				1, // 課題の追加
@@ -67,22 +71,30 @@ let vm = new Vue({
 				3, // 課題にコメント
 			];
 			let activityUrlString = 'activityTypeId[]=' + activityTypeIds.join('&activityTypeId[]=');
-			for (let i = 0; i < config.length; i++) {
-				let url = config[i].url + '/api/v2/space/activities?count=10&apiKey=' + config[i].apiKey
-					+ '&' + activityUrlString;
-				axios.get(url).then(response => {
-					this.convertActivityApiData(config[i], response);
-					this.panels[i] = this.convertActivityApiData(config[i], response);
-					this.panels = Object.assign({}, this.panels);
-				});
+
+			let url = config[configNo].url + '/api/v2/space/activities?count=10&apiKey=' + config[configNo].apiKey
+				+ '&' + activityUrlString;
+			if (config[configNo].maxId) {
+				let maxId = config[configNo].maxId - 1;
+				url += '&maxId=' + maxId;
 			}
+			axios.get(url).then(response => {
+				if (! this.panels[configNo]) {
+					this.panels[configNo] = {
+						no: configNo,
+						name: config[configNo].name,
+						url: config[configNo].url,
+						activities: [],
+					}
+				}
+				this.convertActivityApiData(config[configNo], response);
+				let activities = this.convertActivityApiData(config[configNo], response);
+				this.panels[configNo]['activities'] = this.panels[configNo]['activities'].concat(activities);
+				this.panels = Object.assign({}, this.panels);
+			});
 		},
 		convertActivityApiData(spaceConfig, response) {
-			let activityData = {
-				name: spaceConfig.name,
-				url: spaceConfig.url,
-				activities: [],
-			};
+			let activities = [];
 
 			for (let i = 0; i < response.data.length; i++) {
 				let activity = {};
@@ -105,6 +117,8 @@ let vm = new Vue({
 				activity.type = response.data[i].type;
 				activity.contentExpanded = false;
 
+				spaceConfig.maxId = response.data[i].id;
+
 				switch (activity.type) {
 					case 1:
 						activity.type_text = '課題追加';
@@ -123,10 +137,10 @@ let vm = new Vue({
 					activity.description = activity.description.replace(/\n/g, '<br>');
 				}
 
-				activityData.activities.push(activity);
+				activities.push(activity);
 			}
 
-			return activityData;
+			return activities;
 		},
 		getUserIcon(spaceConfig, userId) {
 			return spaceConfig.url + '/api/v2/users/' + userId + '/icon?apiKey=' + spaceConfig.apiKey;
@@ -155,6 +169,11 @@ let vm = new Vue({
 		},
 		expandContent(activity) {
 			activity.contentExpanded = true;
+		},
+		infiniteScroll(event, panelNo) {
+			if ((event.target.scrollTop + event.target.offsetHeight) >= event.target.scrollHeight) {
+				this.loadActivities(panelNo);
+			}
 		},
 		escape(str) {
 			if (! str) return;
