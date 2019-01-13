@@ -23,8 +23,8 @@ let vm = new Vue({
 				alert('keyの値が間違っています')
 				return;
 			}
-			let configText = JSON.parse(json);
-			config = this.configTextToArray(configText);
+			this.configText = JSON.parse(json);
+			config = this.configTextToArray(this.configText);
 
 			for (let i = 0; i < config.length; i++) {
 				if (! this.panels[i]) {
@@ -37,8 +37,6 @@ let vm = new Vue({
 				}
 				this.loadActivities(i);
 			}
-
-			this.configArrayToText();
 		} else {
 			this.showConfigContent = true;
 		}
@@ -88,13 +86,6 @@ let vm = new Vue({
 			}
 
 			return _config;
-		},
-		configArrayToText() {
-			let configText = '';
-			for (let i = 0; i < config.length; i++) {
-				configText += config[i].name + ', ' + config[i].url + ', ' + config[i].apiKey + '\n';
-			}
-			this.configText = configText;
 		},
 		loadActivities(configNo) {
 			// 取得する更新の種別
