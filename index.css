@@ -3,6 +3,7 @@ html {
 	font-size: 12px;
 	background: #efefef;
 	word-wrap: break-word;
+	line-height: 1.5em;
 }
 a {
 	color: #000;
@@ -38,7 +39,7 @@ a {
 	margin-bottom: 5px;
 }
 .activity-content {
-	max-height: 100px;
+	max-height: 8.4em;
 	overflow: hidden;
 }
 .activity-content-expanded {
