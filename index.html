@@ -14,29 +14,45 @@
 	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
 	<div id="app">
-		<div id="panels" v-if="config.length">
-			<div class="panel" v-for="panel in panels" v-on:scroll="infiniteScroll($event, panel.no)">
-				<a v-bind:href="panel.url" target="_blank">{{ panel.name }}</a>
-				<div v-if="! panel.activities.length">loading</div>
-				<div class="activity" v-for="activity in panel.activities">
-					<div class="activity-created" v-bind:title="activity.created">{{ activity.created_ago }}</div>
-					<div class="activity-title">
-						<span class="activity-user-icon"><img v-bind:src="activity.user_icon" width="20" height="20"></span>
-						<span class="activity-title-text">{{ activity.user_name }}さんが{{ activity.type_text }}</span>
-					</div>
-					<div class="activity-summary">
-						<a v-bind:href="activityUrl(panel, activity)" target="_blank">{{ activity.project_key }}-{{ activity.key_id }}</a> {{ activity.summary }}
-					</div>
-					<div class="activity-content" v-on:click="expandContent(activity)" v-bind:class="{'activity-content-expanded':activity.contentExpanded}">
-						<div v-if="activity.comment" v-html="activity.comment"></div>
-						<div v-if="! activity.comment && ! activity.changes.length" v-html="activity.description"></div>
-						<div v-if="activity.changes.length" class="activity-status">
-							<span v-for="change in activity.changes">
-								{{ change.status }}
-							</span>
+		<ul id="tabs">
+			<li class="tab" v-on:click="changeContent('dashboard')">dashboard</li>
+			<li class="tab" v-on:click="changeContent('task')">task</li>
+		</ul>
+
+		<div id="contents">
+			<div class="content" v-if="activeContent == 'dashboard'">
+				<div id="panels" v-if="config.length">
+					<div class="panel" v-for="panel in panels" v-on:scroll="infiniteScroll($event, panel.no)">
+						<a v-bind:href="panel.url" target="_blank">{{ panel.name }}</a>
+						<div v-if="! panel.activities.length">loading</div>
+						<div class="activity" v-for="activity in panel.activities">
+							<div class="activity-created" v-bind:title="activity.created">{{ activity.created_ago }}</div>
+							<div class="activity-title">
+								<span class="activity-user-icon"><img v-bind:src="activity.user_icon" width="20" height="20"></span>
+								<span class="activity-title-text">{{ activity.user_name }}さんが{{ activity.type_text }}</span>
+							</div>
+							<div class="activity-summary">
+								<a v-bind:href="activityUrl(panel, activity)" target="_blank">{{ activity.project_key }}-{{ activity.key_id }}</a> {{ activity.summary }}
+							</div>
+							<div class="activity-content" v-on:click="expandContent(activity)" v-bind:class="{'activity-content-expanded':activity.contentExpanded}">
+								<div v-if="activity.comment" v-html="activity.comment"></div>
+								<div v-if="! activity.comment && ! activity.changes.length" v-html="activity.description"></div>
+								<div v-if="activity.changes.length" class="activity-status">
+									<span v-for="change in activity.changes">
+										{{ change.status }}
+									</span>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="content"  v-else-if="activeContent == 'task'">
+				<ul id="tasks">
+					<li class="task" v-for="task in tasks">
+						<span class="task-key">{{ task.issueKey }}</span> <a v-bind:href="task.url" target="_blank"> {{ task.title }}</a> <span class="task-date">{{ task.dueDate }}</span>
+					</li>
+				</ul>
 			</div>
 		</div>
 

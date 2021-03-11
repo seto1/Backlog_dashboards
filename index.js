@@ -6,6 +6,9 @@ let data = {
 	panels: [],
 	showConfigContent: false,
 	done: false,
+	activeContent: 'dashboard',
+	tasks: [],
+	showTasks: [],
 };
 
 let vm = new Vue({
@@ -26,17 +29,7 @@ let vm = new Vue({
 			this.configText = JSON.parse(json);
 			config = this.configTextToArray(this.configText);
 
-			for (let i = 0; i < config.length; i++) {
-				if (! this.panels[i]) {
-					this.panels[i] = {
-						no: i,
-						name: config[i].name,
-						url: config[i].url,
-						activities: [],
-					}
-				}
-				this.loadActivities(i);
-			}
+			this.loadApis();
 		} else {
 			this.showConfigContent = true;
 		}
@@ -60,6 +53,28 @@ let vm = new Vue({
 				Cookies.set('backlog_dashboards_config', cryptedConfig, { expires: 365 });
 				location.reload();
 			}
+		},
+		loadApis: async function() {
+			for (let i = 0; i < config.length; i++) {
+				if (! this.panels[i]) {
+					this.panels[i] = {
+						no: i,
+						name: config[i].name,
+						url: config[i].url,
+						activities: [],
+						tasks: [],
+						user: [],
+					}
+				}
+				this.loadActivities(i);
+				await this.loadUser(i);
+				await this.loadTasks(i);
+			}
+			this.sortTasks();
+			this.showTasks = this.tasks;
+		},
+		changeContent(tabName) {
+			this.activeContent = tabName;
 		},
 		configTextToArray(configText) {
 			let _config = [];
@@ -166,11 +181,14 @@ let vm = new Vue({
 		toggleConfig() {
 			this.showConfigContent = ! this.showConfigContent;
 		},
-		formatDate(unixTime) {
+		formatDate(unixTime, cutTime = false) {
 			let date = new Date(unixTime)
 
-			return date.getFullYear() + '/' + date.getMonth() + 1 + '/' + date.getDate()
-				+ ' ' + date.getHours() + ':' + date.getUTCMinutes() + ':' + date.getSeconds();
+			let result  = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+
+			if (cutTime) return result
+
+			return result + ' ' + date.getHours() + ':' + date.getUTCMinutes() + ':' + date.getSeconds();
 		},
 		formatDateAgo(unixTime) {
 			let date = new Date(unixTime)
@@ -243,6 +261,49 @@ let vm = new Vue({
 			if (!results) return null;
 			if (!results[2]) return '';
 			return decodeURIComponent(results[2].replace(/\+/g, ' '));
+		},
+		loadUser: async function(configNo) {
+			let url = config[configNo].url + '/api/v2/users/myself?apiKey=' + config[configNo].apiKey;
+			await axios.get(url).then(response => {
+				this.panels[configNo]['user'] = response.data;
+			});
+		},
+		loadTasks: async function(configNo) {
+			let now = new Date();
+			let untilDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30);
+			let until =  untilDate.getFullYear()
+				+ '-' + ('0' + (untilDate.getMonth() + 1)).slice(-2)
+				+ '-' + ('0' + untilDate.getDate()).slice(-2);
+			let url = config[configNo].url + '/api/v2/issues?count=100&apiKey=' + config[configNo].apiKey
+				+ '&assigneeId[]=' + this.panels[configNo]['user'].id
+				+ '&sort=dueDate&order=asc&statusId[]=1&statusId[]=2&statusId[]=3'
+				+ '&dueDateUntil=' + until;
+			await axios.get(url).then(response => {
+				this.tasks = this.tasks.concat(this.convertTaskApiData(config[configNo], response));
+			});
+		},
+		convertTaskApiData(spaceConfig, response) {
+			let tasks = [];
+
+			for (let i = 0; i < response.data.length; i++) {
+				let task = {};
+
+				task.title = response.data[i].summary;
+				task.issueKey = response.data[i].issueKey;
+				task.dueDate = this.formatDate(response.data[i].dueDate, true);
+				task.url = spaceConfig.url + '/view/' + response.data[i].issueKey;
+
+				tasks.push(task);
+			}
+
+			return tasks;
+		},
+		sortTasks() {
+			this.tasks.sort(function(a, b) {
+				if (a.dueDate < b.dueDate) return -1;
+				if (a.dueDate > b.dueDate) return 1;
+				return 0;
+			});
 		},
 		escape(str) {
 			if (! str) return;
