@@ -67,6 +67,8 @@ let vm = new Vue({
 					}
 				}
 				this.loadActivities(i);
+			}
+			for (let i = 0; i < config.length; i++) {
 				await this.loadUser(i);
 				await this.loadTasks(i);
 			}
