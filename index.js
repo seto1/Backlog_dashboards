@@ -249,7 +249,9 @@ let vm = new Vue({
 
 			if (! statusTypes[change.field]) return '';
 
-			if (change.field === 'status') change.new_value = statuses[change.new_value];
+			let statusNew = (statuses[change.new_value]) ? statuses[change.new_value]: 'その他';
+
+			if (change.field === 'status') change.new_value = statusNew;
 
 			statusText = '[' + statusTypes[change.field] + ': ' + change.new_value + ']';
 
