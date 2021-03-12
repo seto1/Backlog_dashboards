@@ -29,6 +29,11 @@ let vm = new Vue({
 			this.configText = JSON.parse(json);
 			config = this.configTextToArray(this.configText);
 
+			let activeContent = Cookies.get('active_content');
+			if (activeContent) {
+				this.activeContent = activeContent;
+			}
+
 			this.loadApis();
 		} else {
 			this.showConfigContent = true;
@@ -77,6 +82,7 @@ let vm = new Vue({
 		},
 		changeContent(tabName) {
 			this.activeContent = tabName;
+			Cookies.set('active_content', tabName, { expires: 365 });
 		},
 		configTextToArray(configText) {
 			let _config = [];
