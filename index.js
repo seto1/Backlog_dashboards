@@ -77,6 +77,7 @@ let vm = new Vue({
 				await this.loadUser(i);
 				await this.loadTasks(i);
 			}
+			this.filterTasks();
 			this.sortTasks();
 			this.showTasks = this.tasks;
 		},
@@ -280,14 +281,18 @@ let vm = new Vue({
 		},
 		loadTasks: async function(configNo) {
 			let now = new Date();
-			let untilDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30);
+			let untilDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14);
+			let sinceDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
 			let until =  untilDate.getFullYear()
 				+ '-' + ('0' + (untilDate.getMonth() + 1)).slice(-2)
 				+ '-' + ('0' + untilDate.getDate()).slice(-2);
+			let since =  sinceDate.getFullYear()
+				+ '-' + ('0' + (sinceDate.getMonth() + 1)).slice(-2)
+				+ '-' + ('0' + sinceDate.getDate()).slice(-2);
 			let url = config[configNo].url + '/api/v2/issues?count=100&apiKey=' + config[configNo].apiKey
 				+ '&assigneeId[]=' + this.panels[configNo]['user'].id
-				+ '&sort=dueDate&order=asc&statusId[]=1&statusId[]=2&statusId[]=3'
-				+ '&dueDateUntil=' + until;
+				+ '&sort=dueDate&order=asc'
+				+ '&dueDateUntil=' + until + '&dueDateSince=' + since;
 			await axios.get(url).then(response => {
 				this.tasks = this.tasks.concat(this.convertTaskApiData(config[configNo], response));
 			});
@@ -302,11 +307,17 @@ let vm = new Vue({
 				task.issueKey = response.data[i].issueKey;
 				task.dueDate = this.formatDate(response.data[i].dueDate, true);
 				task.url = spaceConfig.url + '/view/' + response.data[i].issueKey;
+				task.status = response.data[i].status;
 
 				tasks.push(task);
 			}
 
 			return tasks;
+		},
+		filterTasks() {
+			this.tasks = this.tasks.filter(function(task) {
+				return ! (task.status.name == '完了');
+			});
 		},
 		sortTasks() {
 			this.tasks.sort(function(a, b) {

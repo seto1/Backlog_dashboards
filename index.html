@@ -49,10 +49,11 @@
 			</div>
 			<div class="content"  v-else-if="activeContent == 'task'">
 				<ul id="tasks">
-					<li class="task" v-for="task in tasks">
+					<li class="task" v-for="task in showTasks">
 						<span class="task-key">{{ task.issueKey }}</span> <a v-bind:href="task.url" target="_blank"> {{ task.title }}</a> <span class="task-date">{{ task.dueDate }}</span>
 					</li>
 				</ul>
+				<div class="tasks-comment">※完了期限が±2週間以内の課題のみ表示</div>
 			</div>
 		</div>
 

@@ -73,6 +73,11 @@ a {
 }
 
 /* task */
+.tasks-comment {
+	width: 800px;
+	margin: 10px auto;
+	color: #555;
+}
 #tasks {
 	background: #fff;
 	padding: 5px;
