@@ -193,7 +193,9 @@ let vm = new Vue({
 		formatDate(unixTime, cutTime = false) {
 			let date = new Date(unixTime)
 
-			let result  = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+			let result  = date.getFullYear()
+				+ '/' + ('0' + (date.getMonth() + 1)).slice(-2)
+				+ '/' + ('0' + date.getDate()).slice(-2);
 
 			if (cutTime) return result
 
