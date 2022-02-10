@@ -1,6 +1,7 @@
 let config =[];
 
 let data = {
+	config: [],
 	configText: '',
 	configError: '',
 	panels: [],
@@ -11,9 +12,10 @@ let data = {
 	showTasks: [],
 };
 
-let vm = new Vue({
-	el: '#app',
-	data: data,
+Vue.createApp({
+	data() {
+		return data;
+	},
 	created: function() {
 		this.saltKey = this.getUrlParam('key');
 		if (! this.saltKey) this.reloadPageWithKey();
@@ -27,7 +29,7 @@ let vm = new Vue({
 				return;
 			}
 			this.configText = JSON.parse(json);
-			config = this.configTextToArray(this.configText);
+			this.config = this.configTextToArray(this.configText);
 
 			let activeContent = Cookies.get('active_content');
 			if (activeContent) {
@@ -53,19 +55,19 @@ let vm = new Vue({
 			this.configError = '';
 			let _config = this.configTextToArray(this.configText);
 			if (! this.configError) {
-				config = _config;
+				this.config = _config;
 				let cryptedConfig = CryptoJS.AES.encrypt(JSON.stringify(this.configText), this.saltKey).toString();
 				Cookies.set('backlog_dashboards_config', cryptedConfig, { expires: 365 });
 				location.reload();
 			}
 		},
 		loadApis: async function() {
-			for (let i = 0; i < config.length; i++) {
+			for (let i = 0; i < this.config.length; i++) {
 				if (! this.panels[i]) {
 					this.panels[i] = {
 						no: i,
-						name: config[i].name,
-						url: config[i].url,
+						name: this.config[i].name,
+						url: this.config[i].url,
 						activities: [],
 						tasks: [],
 						user: [],
@@ -73,7 +75,7 @@ let vm = new Vue({
 				}
 				this.loadActivities(i);
 			}
-			for (let i = 0; i < config.length; i++) {
+			for (let i = 0; i < this.config.length; i++) {
 				await this.loadUser(i);
 				await this.loadTasks(i);
 			}
@@ -120,14 +122,14 @@ let vm = new Vue({
 			];
 			let activityUrlString = 'activityTypeId[]=' + activityTypeIds.join('&activityTypeId[]=');
 
-			let url = config[configNo].url + '/api/v2/space/activities?count=10&apiKey=' + config[configNo].apiKey
+			let url = this.config[configNo].url + '/api/v2/space/activities?count=10&apiKey=' + this.config[configNo].apiKey
 				+ '&' + activityUrlString;
-			if (config[configNo].maxId) {
-				let maxId = config[configNo].maxId - 1;
+			if (this.config[configNo].maxId) {
+				let maxId = this.config[configNo].maxId - 1;
 				url += '&maxId=' + maxId;
 			}
 			axios.get(url).then(response => {
-				let activities = this.convertActivityApiData(config[configNo], response);
+				let activities = this.convertActivityApiData(this.config[configNo], response);
 				this.panels[configNo]['activities'] = this.panels[configNo]['activities'].concat(activities);
 				this.panels = Object.assign({}, this.panels);
 			});
@@ -276,7 +278,7 @@ let vm = new Vue({
 			return decodeURIComponent(results[2].replace(/\+/g, ' '));
 		},
 		loadUser: async function(configNo) {
-			let url = config[configNo].url + '/api/v2/users/myself?apiKey=' + config[configNo].apiKey;
+			let url = this.config[configNo].url + '/api/v2/users/myself?apiKey=' + this.config[configNo].apiKey;
 			await axios.get(url).then(response => {
 				this.panels[configNo]['user'] = response.data;
 			});
@@ -291,12 +293,12 @@ let vm = new Vue({
 			let since =  sinceDate.getFullYear()
 				+ '-' + ('0' + (sinceDate.getMonth() + 1)).slice(-2)
 				+ '-' + ('0' + sinceDate.getDate()).slice(-2);
-			let url = config[configNo].url + '/api/v2/issues?count=100&apiKey=' + config[configNo].apiKey
+			let url = this.config[configNo].url + '/api/v2/issues?count=100&apiKey=' + this.config[configNo].apiKey
 				+ '&assigneeId[]=' + this.panels[configNo]['user'].id
 				+ '&sort=dueDate&order=asc'
 				+ '&dueDateUntil=' + until + '&dueDateSince=' + since;
 			await axios.get(url).then(response => {
-				this.tasks = this.tasks.concat(this.convertTaskApiData(config[configNo], response));
+				this.tasks = this.tasks.concat(this.convertTaskApiData(this.config[configNo], response));
 			});
 		},
 		convertTaskApiData(spaceConfig, response) {
@@ -345,4 +347,4 @@ let vm = new Vue({
 			});
 		}
 	}
-});
+}).mount('#app');
