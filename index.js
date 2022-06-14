@@ -226,7 +226,7 @@ Vue.createApp({
 			activity.contentExpanded = true;
 		},
 		infiniteScroll(event, panelNo) {
-			if ((event.target.scrollTop + event.target.offsetHeight) >= event.target.scrollHeight) {
+			if (event.target.scrollHeight - (event.target.scrollTop + event.target.offsetHeight) <= 10) {
 				this.loadActivities(panelNo);
 			}
 		},
