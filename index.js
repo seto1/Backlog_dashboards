@@ -10,6 +10,7 @@ let data = {
 	activeContent: 'dashboard',
 	tasks: [],
 	showTasks: [],
+	loadedUrls: [],
 };
 
 Vue.createApp({
@@ -128,6 +129,11 @@ Vue.createApp({
 				let maxId = this.config[configNo].maxId - 1;
 				url += '&maxId=' + maxId;
 			}
+			// 重複読み込み対策
+			if (this.loadedUrls.includes(url)) {
+				return;
+			}
+			this.loadedUrls.push(url);
 			axios.get(url).then(response => {
 				let activities = this.convertActivityApiData(this.config[configNo], response);
 				this.panels[configNo]['activities'] = this.panels[configNo]['activities'].concat(activities);
